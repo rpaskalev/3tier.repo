@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: ${CI_REGISTRY}/${COMPOSE_PROJECT_NAME}-web
+    env_file:
+      - ./.env
+    environment:
+      - API_HOST=http://api:${API_PORT}
+      - PORT=${WEB_PORT}
+      - NODE_ENV=${NODE_ENV}
+    networks:
+      - frontend
+    ports:
+      - "3000:${WEB_PORT}"
+  
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ${CI_REGISTRY}/${COMPOSE_PROJECT_NAME}-api
+    env_file:
+      - ./.env
+    environment:
+      - DB=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - PORT=${API_PORT}
+      - NODE_ENV=${NODE_ENV}
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "3001:${API_PORT}"
+
+  db:
+    image: "postgres"
+    env_file:
+      - ./.env
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
